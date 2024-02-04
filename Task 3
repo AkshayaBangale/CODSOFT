@@ -1,0 +1,92 @@
+#include <iostream>
+#include <vector>
+void displayBoard(const std::vector<std::vector<char>>& board);
+bool makeMove(std::vector<std::vector<char>>& board, char currentPlayer);
+bool checkWin(const std::vector<std::vector<char>>& board, char currentPlayer);
+bool checkDraw(const std::vector<std::vector<char>>& board);
+void switchPlayer(char& currentPlayer);
+bool playAgain();
+
+int main() {
+    std::vector<std::vector<char>> board(3, std::vector<char>(3, ' '));
+    char currentPlayer = 'X';
+
+    do {
+        displayBoard(board);
+        while (!checkWin(board, currentPlayer) && !checkDraw(board)) {
+            if (!makeMove(board, currentPlayer)) {
+                std::cout << "Invalid move. Try again.\n";
+                continue;
+            }
+            displayBoard(board);
+            if (checkWin(board, currentPlayer)) {
+                std::cout << "Player " << currentPlayer << " wins!\n";
+                break;
+            } else if (checkDraw(board)) {
+                std::cout << "It's a draw!\n";
+                break;
+            }
+            switchPlayer(currentPlayer);
+        }
+
+    } while (playAgain());
+
+    std::cout << "Thanks for playing! Goodbye.\n";
+
+    return 0;
+}
+void displayBoard(const std::vector<std::vector<char>>& board) {
+    std::cout << "\nCurrent Board:\n";
+    for (const auto& row : board) {
+        for (char cell : row) {
+            std::cout << cell << " | ";
+        }
+        std::cout << "\n---------\n";
+    }
+}
+bool makeMove(std::vector<std::vector<char>>& board, char currentPlayer) {
+    int row, col;
+
+    std::cout << "Player " << currentPlayer << ", enter your move (row and column, separated by a space): ";
+    std::cin >> row >> col;
+    if (row < 0 || row >= 3 || col < 0 || col >= 3 || board[row][col] != ' ') {
+        return false;
+    }
+    board[row][col] = currentPlayer;
+    return true;
+}
+bool checkWin(const std::vector<std::vector<char>>& board, char currentPlayer) {
+    for (int i = 0; i < 3; ++i) {
+        if ((board[i][0] == currentPlayer && board[i][1] == currentPlayer && board[i][2] == currentPlayer) ||
+            (board[0][i] == currentPlayer && board[1][i] == currentPlayer && board[2][i] == currentPlayer)) {
+            return true;
+        }
+    }
+
+    if ((board[0][0] == currentPlayer && board[1][1] == currentPlayer && board[2][2] == currentPlayer) ||
+        (board[0][2] == currentPlayer && board[1][1] == currentPlayer && board[2][0] == currentPlayer)) {
+        return true;
+    }
+
+    return false;
+}
+or<char>>& board) {
+    for (const auto& row : board) {
+        for (char cell : row) {
+            if (cell == ' ') {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+void switchPlayer(char& currentPlayer) {
+    currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
+}
+bool playAgain() {
+    char choice;
+    std::cout << "Do you want to play again? (y/n): ";
+    std::cin >> choice;
+    return (choice == 'y' || choice == 'Y');
+}

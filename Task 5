@@ -1,0 +1,125 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <iomanip>
+
+class Book {
+public:
+    std::string title;
+    std::string author;
+    std::string ISBN;
+    bool available;
+
+    Book(std::string t, std::string a, std::string i) : title(t), author(a), ISBN(i), available(true) {}
+};
+
+class Borrower {
+public:
+    std::string name;
+    std::string borrowerID;
+
+    Borrower(std::string n, std::string id) : name(n), borrowerID(id) {}
+};
+
+class Transaction {
+public:
+    std::string bookID;
+    std::string borrowerID;
+    bool isReturn;
+};
+
+class LibrarySystem {
+private:
+    std::vector<Book> books;
+    std::vector<Borrower> borrowers;
+    std::vector<Transaction> transactions;
+    double fineRate; 
+public:
+    LibrarySystem() : fineRate(0.50) {} 
+    void addBook(const Book& book) {
+        books.push_back(book);
+    }
+    Book* findBook(const std::string& key, const std::string& value) {
+        for (auto& book : books) {
+            if ((key == "Title" && book.title == value) ||
+                (key == "Author" && book.author == value) ||
+                (key == "ISBN" && book.ISBN == value)) {
+                return &book;
+            }
+        }
+        return nullptr;
+    }
+    void addBorrower(const Borrower& borrower) {
+        borrowers.push_back(borrower);
+    }
+
+    Borrower* findBorrower(const std::string& borrowerID) {
+        for (auto& borrower : borrowers) {
+            if (borrower.borrowerID == borrowerID) {
+                return &borrower;
+            }
+        }
+        return nullptr;
+    }
+    void checkoutBook(const std::string& bookID, const std::string& borrowerID) {
+        Book* book = findBook("ISBN", bookID);
+        Borrower* borrower = findBorrower(borrowerID);
+
+        if (book && borrower && book->available) {
+            book->available = false;
+            transactions.push_back({bookID, borrowerID, false});
+            std::cout << "Book checked out successfully.\n";
+        } else {
+            std::cout << "Error: Book not available or borrower not found.\n";
+        }
+    }
+
+    void returnBook(const std::string& bookID, const std::string& borrowerID) {
+        Book* book = findBook("ISBN", bookID);
+        Borrower* borrower = findBorrower(borrowerID);
+
+        if (book && borrower && !book->available) {
+            book->available = true;
+            transactions.push_back({bookID, borrowerID, true});
+            std::cout << "Book returned successfully.\n";
+        } else {
+            std::cout << "Error: Book not checked out or borrower not found.\n";
+        }
+    }
+    double calculateFine(const std::string& borrowerID) {
+        double totalFine = 0.0;
+
+        for (const auto& transaction : transactions) {
+            if (transaction.borrowerID == borrowerID && transaction.isReturn) {
+                Book* book = findBook("ISBN", transaction.bookID);
+                int daysOverdue = 7; 
+                totalFine += (daysOverdue * fineRate);
+            }
+        }
+
+        return totalFine;
+    }
+    void displayAllBooks() {
+        std::cout << "All Books in the Library:\n";
+        std::cout << std::setw(20) << "Title" << std::setw(20) << "Author" << std::setw(15) << "ISBN" << std::setw(15) << "Available\n";
+        for (const auto& book : books) {
+            std::cout << std::setw(20) << book.title << std::setw(20) << book.author << std::setw(15) << book.ISBN << std::setw(15) << (book.available ? "Yes" : "No") << "\n";
+        }
+    }
+};
+
+int main() {
+    LibrarySystem library;
+    library.addBook(Book("The Catcher in the Rye", "J.D. Salinger", "978-0-316-76948-0"));
+    library.addBook(Book("To Kill a Mockingbird", "Harper Lee", "978-0-06-112008-4"));
+    library.addBook(Book("1984", "George Orwell", "978-0-452-28423-4"));
+    library.addBorrower(Borrower("John Doe", "B001"));
+    library.addBorrower(Borrower("Jane Smith", "B002"));
+    library.checkoutBook("978-0-316-76948-0", "B001");
+    library.returnBook("978-0-316-76948-0", "B001");
+    double fineAmount = library.calculateFine("B001");
+    std::cout << "Total fine for borrower B001: $" << fineAmount << "\n";
+    library.displayAllBooks();
+
+    return 0;
+}
